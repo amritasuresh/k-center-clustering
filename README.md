@@ -17,3 +17,5 @@ for the offline version : ```python3 offline-k-center.py <no-of-clusters> <epsil
  Please note that for plotting the clusters, cartopy is required. In order to install cartopy, the user faced various pending bugs while doing a direct install. For best results, ```conda install -c conda-forge cartopy ``` is the smoothest way to go forward.
  
  If that is to be skipped, the clusters can still be found by omitting the plotting. Contact the author for further details.
+
+Specification of the system on which the code was benchmarked : 8 GB 1600 MHz DDR3, 1.8GHz Intel core i5
