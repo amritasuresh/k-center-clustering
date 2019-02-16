@@ -2,16 +2,14 @@
 # !/usr/bin/python3
 #
 #
-# Implementation of a 2-approximation algorithm for the fully dynamic k-center
+# Implementation of a 3-approximation algorithm for the offline k-center with outliers
 # clustering problem.
-# From https://sites.google.com/site/maurosozio/techReport.pdf
 #
 
 import random
 import operator
 import math
 import cartopy.crs      as ccrs
-# import cartopy.crs as cccrs
 import matplotlib
 
 matplotlib.use("TkAgg")
@@ -70,7 +68,7 @@ def tweet_dist(v1, v2):
 # Computes bounds on a tweet set.
 # Starts from a random tweet, computes the distance to the rest of the
 # tweets. Repeats from farthest/shortest tweet until it gets the same
-# two tweets. Still quite heuristic... Maybe sufficient. O(n) randomized.
+# two tweets.
 
 def bound(graph, comp):
     rand_nodes = [graph[i] for i in random.sample(range(len(graph)), 3)]
@@ -88,7 +86,6 @@ def bound(graph, comp):
     while v1 != v1_prev:
         for v2 in graph:
             dist = tweet_dist(v1, v2)
-            # Unlucky if bnd starts better than all dists.
             if comp(dist, bnd) and v1 != v2:
                 bnd = dist
                 vnext = v2
@@ -98,7 +95,7 @@ def bound(graph, comp):
     return bnd
 
 
-# Computes βs.
+# Computes r values based on value of epsilon.
 def betas(dmin, dmax, epsilon):
     n = (1 + epsilon)
     betas = []
@@ -109,23 +106,23 @@ def betas(dmin, dmax, epsilon):
     return betas
 
 
-# Builds a cluster within 3β and β distance of a given center.
-def build_e_j(graph, beta, center):
+# Builds a cluster within 3r and r distance of a given center.
+def build_e_j(graph, radius, center):
     cluster = set()
     cluster.add(center)
     for node in graph:
-        if tweet_dist(center, node) < 3 * beta:
+        if tweet_dist(center, node) < 3 * radius:
             cluster.add(node)
     return cluster
 
 
-# Finds the number of points within β distance of a given center
+# Finds the number of points within r distance of a given center
 
-def build_g_j(graph, beta, center):
+def build_g_j(graph, radius, center):
     cluster = set()
     cluster.add(center)
     for node in graph:
-        if tweet_dist(center, node) < beta:
+        if tweet_dist(center, node) < radius:
             cluster.add(node)
     return len(cluster)
 
@@ -136,7 +133,7 @@ def clustering(graph, k, betas, outlier_count):
     result = []
     time_when_clustering_started = timeit.default_timer()
     #print("[***] in loop starting now")
-    for beta in betas:  # loops through all the possible values of beta until it finds the one which can form a cluster with at most z outliers.
+    for beta in betas:  # loops through all the possible values of r until it finds the one which can form a cluster with at most z outliers.
         centers = set()
         #print("[***] Total time spent. Beta is updated, and is ", time_when_clustering_started, beta)
         clusters = []
@@ -194,7 +191,7 @@ def plot_solution(L, filename):
 if __name__ == "__main__":
 
     if len(sys.argv) < 5:
-        #print("[*] python3 main.py k epsilon window outliers")
+        print("[*] python3 main.py k epsilon window outliers")
         sys.exit()
 
     k = int(sys.argv[1])
@@ -252,15 +249,13 @@ if __name__ == "__main__":
     time.append(ctime)
     #print("[*] Time elapsed:\t", ctime)
 
-    #print("[*] Found β:\t", L[0][3])
+    #print("[*] Found r:\t", L[0][3])
     #print("[*] Found centers: \t", L[0][0])
     #print("[******] Time taken", ctime)
-    #print("[******] Beta", L[0][3])
+    #print("[******] Radius", L[0][3])
     #print("[******] For k, epsilon, size, outliers", k, epsilon, window, outlier_count)
     filename = "k"+str(k)+"e"+str(epsilon)+"z"+str(outlier_count)+"s"+str(window)+"tweets.jpg"
     plot_solution(L[0], "img/cluster"+filename)
     #plot_outliers(L[0][2], "img/outlier"+filename)
     print(str(k) +"," + str(epsilon) +"," + str(window)+","+str(outlier_count)+","+str(L[0][3])+","+str(ctime))
     #print(time)
-
-    #print(best_beta)
